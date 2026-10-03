@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cards">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚡%3C/text%3E%3C/svg%3E">
+<title>Pokémon Card Tracker</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--tx:#1b1d28;--mut:#6b7085;--bd:#e2e5ef;--ac:#e3350d;--ac2:#1747a6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--ac2:#7aa2f7;--bg:#14161f;--card:#1e212d;--tx:#eceef6;--mut:#9aa0b8;--bd:#2d3142}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+#bgimg{position:fixed;inset:0;z-index:-1;background:center/cover no-repeat}
+main{max-width:760px;margin:0 auto;padding:16px}
+h2{font-size:16px;margin:0 0 10px}
+.box{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+input,select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:10px;font:inherit}
+input[type=text],input[type=search]{flex:1;min-width:160px}
+button{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer}
+button.ghost{background:transparent;color:var(--ac2);border:1px solid var(--bd);font-weight:500;padding:6px 10px}
+button:disabled{opacity:.5}
+.note{font-size:12.5px;color:var(--mut);margin:8px 0}
+a{color:var(--ac2)}
+#stats{display:flex;gap:10px;margin:20px 0 22px}
+.stat{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px}
+.stat b{display:block;font-size:22px}.stat span{color:var(--mut);font-size:13px}
+.hero{position:relative;overflow:hidden;border-radius:14px;margin-bottom:14px;background:linear-gradient(135deg,#e3350d,#1747a6);color:#fff}
+.hero .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:3px;padding:3px;max-height:230px;overflow:hidden}
+.hero .grid img{width:100%;aspect-ratio:5/7;object-fit:cover;border-radius:4px;display:block}
+.hero .cap{position:absolute;left:0;right:0;bottom:0;padding:34px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.78))}
+.hero .cap.solo{position:relative;background:none;padding:22px 16px}
+.hero h1{font-size:20px;margin:0}
+.res{border:1px solid var(--bd);border-radius:10px;padding:10px;margin-top:8px;display:flex;gap:10px;align-items:center}
+.res img{width:54px;border-radius:5px;flex:none}.res .m{flex:1;min-width:0}.res small{color:var(--mut)}
+.price{font-weight:700;color:var(--ac2)}
+.glab{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin:18px 0 12px}
+.gr{display:block}
+.item{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;border-radius:10px;padding:10px 12px;margin-bottom:6px;color:#fff}
+.item small{color:rgba(255,255,255,.88)}.item a{color:#fff}
+.left{display:flex;gap:10px;align-items:center}
+.th{width:56px;height:78px;border-radius:6px;object-fit:cover;background:rgba(255,255,255,.18);flex:none}
+.item button.ghost{background:#fff;color:#b3261e;border:0;font-weight:600;padding:8px 12px}
+.item input{width:70px}
+.gen{border:1px solid var(--bd);border-radius:12px;margin-bottom:8px;overflow:hidden}
+.gh{display:flex;align-items:center;gap:10px;padding:12px;width:100%;background:none;border:0;color:var(--tx);text-align:left;font:inherit;font-weight:400;border-radius:0}
+.bar{flex:1;height:8px;background:var(--bd);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac2)}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;padding:0 12px 12px}
+.dt{border-radius:8px;padding:4px;color:#fff;text-align:center;font-size:11px;line-height:1.2;word-break:break-word}
+.dt img,.dt .ph{width:100%;aspect-ratio:5/7;object-fit:cover;border-radius:4px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);margin-bottom:3px}
+#tabs{display:none}
+@media (max-width:640px){
+ main{padding:10px 10px 84px}
+ #tabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:9;background:var(--card);border-top:1px solid var(--bd);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+ #tabs button{flex:1;background:none;color:var(--mut);border-radius:14px;padding:6px 0;display:flex;flex-direction:column;align-items:center;font-size:20px;line-height:1.1}
+ #tabs button span{font-size:11px;font-weight:600}
+ #tabs button.on{color:var(--ac2);background:rgba(23,71,166,.12)}
+ #dexbox{display:none}
+ body[data-tab="cards"] #findbox,body[data-tab="dex"] #findbox{display:none}
+ body[data-tab="find"] #colbox,body[data-tab="find"] #hero,body[data-tab="find"] #stats,body[data-tab="find"] #bgrow{display:none}
+ body[data-tab="dex"] #dexbox{display:block}
+ body[data-tab="dex"] #colbox,body[data-tab="dex"] #hero,body[data-tab="dex"] #stats,body[data-tab="dex"] #bgrow{display:none}
+ .gr,.dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+ .item{flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:6px;padding:6px;margin:0;font-size:12px}
+ .item .left{flex-direction:column;align-items:stretch;gap:4px;text-align:center}
+ .item .th{width:100%;height:auto;aspect-ratio:5/7}
+ .item .det,.item .ctl,.item br{display:none}
+ .item b{display:block;font-size:12px;line-height:1.2}
+ .item.open{grid-column:1/-1}.item.open .det,.item.open br{display:inline}.item.open .ctl{display:flex}
+ .item.open .left{flex-direction:row;text-align:left}.item.open .th{width:90px}
+ .glab{grid-column:1/-1}
+}
+</style></head><body>
+<div id="bgimg"></div>
+<main>
+<div id="hero"></div>
+<div id="stats"></div>
+
+<div class="box" id="findbox">
+ <h2>Find a card</h2>
+ <div class="row"><input type="search" id="q" placeholder="e.g. Clamperl 195/182 or Charizard ex" aria-label="Card search"><button id="go">Search</button><button id="scan" class="ghost">📷 Scan card</button><input type="file" id="pic" accept="image/*" hidden></div>
+ <div id="results"></div>
+ <p class="note">Data and prices come from the Pokémon TCG API (English cards, TCGplayer market price for raw cards). PSA grade values are rough multipliers, not real sale prices.</p>
+ <details><summary class="note">API key (optional)</summary><div class="row"><input type="text" id="key" placeholder="Paste free key from dev.pokemontcg.io"><button id="keysave" class="ghost">Save</button></div></details>
+</div>
+
+<div class="box" id="colbox">
+ <div class="row" style="justify-content:flex-end;flex-wrap:nowrap;gap:6px">
+  <button class="ghost" id="bk">Backup</button><button class="ghost" id="rs">Restore</button><button class="ghost" id="csv">CSV</button><input type="file" id="rfile" accept=".json,application/json" hidden>
+ </div>
+ <input type="search" id="cq" placeholder="Search my cards…" aria-label="Search my cards" style="width:100%;margin-top:10px">
+ <div id="rnote" class="note"></div>
+ <div id="list"></div>
+</div>
+
+<div class="note" id="bgrow"><button class="ghost" id="bgb">🖼 Set background</button> <button class="ghost" id="bgx" hidden>Reset background</button><input type="file" id="bgfile" accept="image/*" hidden></div>
+<div class="box" id="dexbox"><h2>Pokédex</h2><div id="dex"></div></div>
+</main>
+<nav id="tabs">
+ <button data-tab="cards" class="on"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#fff" stroke="currentColor" stroke-width="2"/><path d="M2 12a10 10 0 0 1 20 0z" fill="#e3350d" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><line x1="2" y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.2" fill="#fff" stroke="currentColor" stroke-width="2"/></svg><span>Cards</span></button>
+ <button data-tab="find">🔍<span>Search</span></button>
+ <button data-tab="dex"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3" fill="#e3350d" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="12" r="3" fill="#7fb7ff" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="9" width="6" height="6" rx="1" fill="#fff" stroke="currentColor" stroke-width="1.4"/></svg><span>Pokédex</span></button>
+</nav>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money=n=>"$"+(Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const K="ptk-cards",KB="ptk-bg",KK="ptk-key";
+let col=[],bg=null,R=[],qf="",open=new Set(),openG=new Set();
+try{col=JSON.parse(localStorage.getItem(K)||"[]")}catch(e){}
+try{bg=localStorage.getItem(KB)}catch(e){}
+const note=m=>$("rnote").innerHTML=m;
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(col))}catch(e){note("Your browser storage is full. Make a Backup and remove some cards.")}};
+const TC={Grass:"#4fae4e",Fire:"#e8643a",Water:"#1f5db5",Lightning:"#d9a90b",Psychic:"#a64fae",Fighting:"#b5562a",Darkness:"#4b4659",Metal:"#7d8f9c",Fairy:"#e0699f",Dragon:"#6a56d6",Colorless:"#8f8f86",Trainer:"#4f6f8f",Energy:"#6f7f5a",Other:"#6b7085"};
+const CO=["Fire","Fighting","Lightning","Grass","Metal","Water","Dragon","Psychic","Fairy","Darkness","Colorless","Trainer","Energy","Other"];
+const GR=[["Raw","Raw (ungraded)",1],["10","PSA 10 · Gem Mint",4],["9","PSA 9 · Mint",2],["8","PSA 8 · NM-MT",1.3],["7","PSA 7 · Near Mint",1],["6","PSA 6 · EX-MT",.8],["5","PSA 5 · Excellent",.6],["4","PSA 4 · VG-EX",.5],["3","PSA 3 · Very Good",.4],["2","PSA 2 · Good",.3],["1","PSA 1 · Poor",.2]];
+const COND=Object.fromEntries(GR.map(g=>[g[0],g[2]])),LBL=Object.fromEntries(GR.map(g=>[g[0],g[1]]));
+const GEN=[["I","Kanto",1,151],["II","Johto",152,251],["III","Hoenn",252,386],["IV","Sinnoh",387,493],["V","Unova",494,649],["VI","Kalos",650,721],["VII","Alola",722,809],["VIII","Galar",810,905],["IX","Paldea",906,1025]];
+const ty=c=>TC[c.type]?c.type:"Other";
+const val=c=>(+c.price||0)*(COND[c.cond]||1);
+const pic=c=>c.photo||c.img||"";
+const vis=c=>!qf||[c.name,c.set,c.type,c.rarity,c.number].join(" ").toLowerCase().includes(qf);
+
+/* ---------- render ---------- */
+function render(){
+ const total=col.reduce((a,c)=>a+val(c)*c.qty,0),count=col.reduce((a,c)=>a+c.qty,0);
+ $("stats").innerHTML=`<div class="stat"><b>${money(total)}</b><span>Est. total value</span></div><div class="stat"><b>${count}</b><span>Cards</span></div>`;
+ const pics=col.filter(c=>pic(c)).sort((a,b)=>val(b)-val(a)).slice(0,30);
+ $("hero").innerHTML=pics.length?`<div class="hero"><div class="grid">${pics.map(c=>`<img src="${esc(pic(c))}" alt="${esc(c.name)}">`).join("")}</div><div class="cap"><small>⚡ Pokémon Card Tracker</small><h1>My collection</h1><small><b>${money(total)}</b> · ${count} card${count===1?"":"s"}</small></div></div>`:`<div class="hero"><div class="cap solo"><small>⚡ Pokémon Card Tracker</small><h1>My collection</h1><small>Search or scan a card to get started.</small></div></div>`;
+ const parts=col.map((c,i)=>`<div class="item${open.has(i)?" open":""}" data-t="${i}" style="background:${TC[ty(c)]}"><div class="left">${pic(c)?`<img class="th" src="${esc(pic(c))}" alt="${esc(c.name)}">`:`<div class="th"></div>`}<div><b>${esc(c.name)}</b><br><small class="det">${esc(c.set)} · #${esc(c.number)} · ${esc(c.rarity)}</small><br><small>${c.price?money(val(c))+" each"+(c.cond==="Raw"?"":" · rough multiplier"):"No price found"}</small></div></div>
+ <div class="row ctl"><select data-i="${i}" data-f="cond">${GR.map(g=>`<option value="${g[0]}"${g[0]===c.cond?" selected":""}>${g[1]}</option>`).join("")}</select>
+ <input type="number" min="1" value="${c.qty}" data-i="${i}" data-f="qty" aria-label="Quantity">${c.url?`<a href="${esc(c.url)}" target="_blank" rel="noopener">TCGplayer</a>`:""}
+ <button class="ghost" data-del="${i}">Remove</button></div></div>`);
+ const g={};col.forEach((c,i)=>{if(vis(c))(g[ty(c)]=g[ty(c)]||[]).push(i)});
+ const ord=Object.keys(g).sort((x,y)=>CO.indexOf(x)-CO.indexOf(y));
+ $("list").innerHTML=col.length?(ord.length?ord.map(t=>`<div class="glab" style="color:${TC[t]}">${t} · ${g[t].length}</div><div class="gr">`+g[t].sort((x,y)=>val(col[y])-val(col[x])).map(i=>parts[i]).join("")+"</div>").join(""):`<p class="note">No cards match your search.</p>`):`<p class="note">No cards yet. Search above to add your first one.</p>`;
+ renderDex();
+ $("bgimg").style.backgroundImage=bg?`url(${bg})`:"none";$("bgx").hidden=!bg;
+}
+function renderDex(){
+ let tot=0;
+ const rows=GEN.map((g,gi)=>{
+  const cs=col.filter(c=>c.dex>=g[2]&&c.dex<=g[3]).sort((a,b)=>a.dex-b.dex);
+  const size=g[3]-g[2]+1,n=new Set(cs.map(c=>c.dex)).size,pct=Math.round(n/size*100),o=openG.has(gi);
+  tot+=n;
+  const tiles=cs.map(c=>`<div class="dt" style="background:${TC[ty(c)]}">${pic(c)?`<img src="${esc(pic(c))}" alt="">`:`<div class="ph">${esc(c.name)}</div>`}#${String(c.dex).padStart(4,"0")} ${esc(c.name)}</div>`).join("");
+  return `<div class="gen"><button class="gh" data-g="${gi}"><span>${o?"▾":"▸"}</span><span style="min-width:84px"><b>Gen ${g[0]}</b><br><small>${g[1]}</small></span><span class="bar"><i style="width:${pct}%"></i></span><span style="text-align:right;min-width:70px"><b>${n}/${size}</b><br><small>${pct}%</small></span></button>${o?(cs.length?`<div class="dgrid">${tiles}</div>`:`<p class="note" style="padding:0 12px 12px;margin:0">No cards from this generation yet.</p>`):""}</div>`;
+ });
+ const tr=col.filter(c=>!c.dex).length;
+ $("dex").innerHTML=`<p class="note" style="margin:0 0 10px"><b>${tot}</b>/1025 Pokémon collected (${Math.round(tot/1025*100)}%)</p>`+rows.join("")+(tr?`<p class="note">${tr} Trainer/Energy or unidentified card${tr===1?"":"s"} not counted.</p>`:"");
+}
+
+/* ---------- events ---------- */
+$("dex").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;const g=+b.dataset.g;openG.has(g)?openG.delete(g):openG.add(g);renderDex()});
+$("cq").addEventListener("input",e=>{qf=e.target.value.toLowerCase().trim();render()});
+$("list").addEventListener("change",e=>{
+ const i=e.target.dataset.i,f=e.target.dataset.f;if(i==null)return;
+ col[i][f]=f==="qty"?Math.max(1,parseInt(e.target.value)||1):e.target.value;save();render();
+});
+$("list").addEventListener("click",e=>{
+ const d=e.target.dataset.del;
+ if(d!=null){const at=+d,gone=col.splice(at,1)[0];open.clear();save();render();
+  note(`Removed <b>${esc(gone.name)}</b>. <button class="ghost" id="undo">Undo</button>`);
+  $("undo").onclick=()=>{col.splice(Math.min(at,col.length),0,gone);save();render();note("")};return}
+ if(matchMedia("(max-width:640px)").matches&&!e.target.closest(".ctl")){
+  const it=e.target.closest(".item");if(it){const i=+it.dataset.t;open.has(i)?open.delete(i):open.add(i);render()}
+ }
+});
+function setTab(t){document.body.dataset.tab=t;document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x.dataset.tab===t))}
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+document.body.dataset.tab="cards";
+try{$("key").value=localStorage.getItem(KK)||""}catch(e){}
+$("keysave").onclick=()=>{try{localStorage.setItem(KK,$("key").value.trim())}catch(e){}$("keysave").textContent="Saved"};
+
+/* ---------- search ---------- */
+async function api(q){
+ let k="";try{k=localStorage.getItem(KK)||""}catch(e){}
+ const url="https://api.pokemontcg.io/v2/cards?pageSize=24&orderBy=-set.releaseDate&select=id,name,number,rarity,types,supertype,nationalPokedexNumbers,images,set,tcgplayer&q="+encodeURIComponent(q);
+ const r=await fetch(url,{headers:k?{"X-Api-Key":k}:{},signal:AbortSignal.timeout(30000)});
+ if(!r.ok)throw new Error("The card database returned "+r.status);
+ return (await r.json()).data||[];
+}
+function parseQ(t){
+ let n=null,tot=null;
+ t=t.replace(/(\d{1,3})\s*\/\s*(\d{1,3})/,(m,a,b)=>{n=String(+a);tot=String(+b);return " "});
+ if(n==null){const m=t.match(/(?:^|\s)#?(\d{1,3})\s*$/);if(m){n=String(+m[1]);t=t.replace(m[0]," ")}}
+ const toks=t.toLowerCase().split(/\s+/).map(w=>w.replace(/[^a-z0-9é]/g,"")).filter(Boolean).slice(0,3);
+ return {n,tot,toks};
+}
+const buildQ=(p,useName=true,useNum=true)=>{
+ const a=[];
+ if(useName)p.toks.forEach(w=>a.push(`name:${w}*`));
+ if(useNum&&p.n!=null){a.push(`number:${p.n}`);if(p.tot)a.push(`set.printedTotal:${p.tot}`)}
+ return a.join(" ");
+};
+async function lookup(p){
+ for(const [nm,nu] of [[true,true],[false,true],[true,false]]){
+  const q=buildQ(p,nm,nu);if(!q)continue;
+  if((nm&&!p.toks.length)||(nu&&p.n==null&&!nm))continue;
+  const d=await api(q);if(d.length)return d;
+ }
+ return [];
+}
+function priceOf(c){
+ const pr=(c.tcgplayer&&c.tcgplayer.prices)||{};
+ for(const k of ["holofoil","normal","reverseHolofoil","1stEditionHolofoil","unlimitedHolofoil","1stEditionNormal"])if(pr[k]&&pr[k].market)return pr[k].market;
+ for(const k in pr)if(pr[k]&&pr[k].market)return pr[k].market;
+ return 0;
+}
+const toItem=c=>({id:c.id,name:c.name,set:c.set.name,number:c.number+"/"+c.set.printedTotal,rarity:c.rarity||"",type:c.supertype==="Pokémon"?(c.types&&c.types[0])||"Colorless":c.supertype,dex:(c.nationalPokedexNumbers&&c.nationalPokedexNumbers[0])||0,img:c.images&&c.images.small,price:priceOf(c),url:c.tcgplayer&&c.tcgplayer.url,cond:"Raw",qty:1});
+function showResults(d){
+ R=d.map(toItem);
+ $("results").innerHTML=R.length?R.map((r,i)=>`<div class="res"><img src="${esc(r.img)}" alt=""><div class="m"><b>${esc(r.name)}</b><br><small>${esc(r.set)} · #${esc(r.number)} · ${esc(r.rarity)}</small></div><div style="text-align:right"><div class="price">${r.price?money(r.price):"n/a"}</div><button data-add="${i}" style="margin-top:6px">Add</button></div></div>`).join(""):`<p class="note">No matches. Try the name plus the card number, like "Clamperl 195/182". Japanese cards aren't in this database.</p>`;
+}
+const fail=e=>$("results").innerHTML=`<p class="note">${esc(e.name==="TimeoutError"?"The card database took too long. Try again in a moment.":e.message||"Something went wrong.")}</p>`;
+async function search(){
+ const t=$("q").value.trim();if(!t)return;
+ $("go").disabled=true;$("results").innerHTML=`<p class="note">Searching…</p>`;
+ try{showResults(await lookup(parseQ(t)))}catch(e){fail(e)}
+ $("go").disabled=false;
+}
+$("go").onclick=search;
+$("q").addEventListener("keydown",e=>{if(e.key==="Enter")search()});
+$("results").addEventListener("click",e=>{
+ const a=e.target.dataset.add;if(a==null)return;
+ const r=R[+a],ex=col.find(c=>c.id===r.id&&c.cond==="Raw");
+ if(ex)ex.qty++;else col.push({...r});
+ save();render();e.target.textContent="Added ✓";
+});
+
+/* ---------- scan (in-browser text reading, no AI) ---------- */
+async function shrink(f,max=1000,q=.85){
+ let src,w,h,url=null;
+ try{src=await createImageBitmap(f,{imageOrientation:"from-image"});w=src.width;h=src.height}
+ catch(e){url=URL.createObjectURL(f);src=await new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=no;im.src=url});w=src.naturalWidth;h=src.naturalHeight}
+ const sc=Math.min(1,max/Math.max(w,h)),cv=document.createElement("canvas");
+ cv.width=Math.round(w*sc);cv.height=Math.round(h*sc);cv.getContext("2d").drawImage(src,0,0,cv.width,cv.height);
+ if(url)URL.revokeObjectURL(url);
+ return cv;
+}
+const blobOf=(cv,q=.9)=>new Promise(r=>cv.toBlob(r,"image/jpeg",q));
+let tp=null;
+const loadTess=()=>tp||(tp=new Promise((ok,no)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";s.onload=()=>ok(window.Tesseract);s.onerror=()=>{tp=null;no(new Error("Couldn't load the text reader. Check your connection."))};document.head.appendChild(s)}));
+$("scan").onclick=()=>$("pic").click();
+$("pic").addEventListener("change",async e=>{
+ const f=e.target.files[0];e.target.value="";if(!f)return;
+ $("go").disabled=$("scan").disabled=true;
+ $("results").innerHTML=`<p class="note">Reading the card… the first scan downloads the text reader and can take a minute.</p>`;
+ try{
+  const cv=await shrink(f,1600),T=await loadTess();
+  const r=await T.recognize(await blobOf(cv),"eng"),text=r.data.text||"";
+  const m=text.match(/(\d{1,3})\s*\/\s*(\d{1,3})/);
+  const lines=(r.data.lines||[]).filter(l=>(l.text.match(/[A-Za-z]/g)||[]).length>=3).sort((a,b)=>a.bbox.y0-b.bbox.y0).slice(0,3);
+  let name="";
+  for(const l of lines){
+   const c=l.text.replace(/\b(basic|stage\s*\d|hp)\b/ig," ").replace(/[^A-Za-z\s'é.-]/g," ").replace(/\s+/g," ").trim();
+   if(c.length>=3){name=c;break}
+  }
+  const p={n:m?String(+m[1]):null,tot:m?String(+m[2]):null,toks:name.toLowerCase().split(/\s+/).map(w=>w.replace(/[^a-z0-9é]/g,"")).filter(w=>w.length>1).slice(0,2)};
+  if(!p.toks.length&&p.n==null){$("results").innerHTML=`<p class="note">Couldn't read that photo. Try again in good light with the whole card flat and in focus, or search by name.</p>`}
+  else{showResults(await lookup(p));if(!R.length)$("results").innerHTML=`<p class="note">Read "${esc(name||"?")}"${m?" "+esc(m[0]):""} but found no match. Try searching by name and number.</p>`}
+ }catch(err){fail(err)}
+ $("go").disabled=$("scan").disabled=false;
+});
+
+/* ---------- backup / restore / csv ---------- */
+function dl(name,data,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+$("bk").onclick=()=>{if(!col.length){note("Nothing to back up yet.");return}dl("pokemon-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify({app:"pokemon-tracker",version:2,saved:new Date().toISOString(),items:col}),"application/json");note("Backup downloaded. Keep the file somewhere safe.")};
+$("csv").onclick=()=>{if(!col.length)return;const q=v=>`"${String(v).replace(/"/g,'""')}"`;dl("pokemon-collection.csv",[["Name","Set","Number","Rarity","Grade","Qty","Est. each (USD)"],...col.map(c=>[c.name,c.set,c.number,c.rarity,LBL[c.cond],c.qty,val(c).toFixed(2)])].map(r=>r.map(q).join(",")).join("\n"),"text/csv")};
+const small=(url,max)=>new Promise(ok=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,max/Math.max(im.width,im.height)),cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);ok(cv.toDataURL("image/jpeg",.75))};im.onerror=()=>ok(null);im.src=url});
+$("rs").onclick=()=>$("rfile").click();
+$("rfile").addEventListener("change",async e=>{
+ const f=e.target.files[0];e.target.value="";if(!f)return;
+ try{
+  const j=JSON.parse(await f.text());if(j.app!=="pokemon-tracker"||!Array.isArray(j.items))throw 0;
+  const items=j.items.filter(c=>c&&typeof c.name==="string").map(c=>({id:c.id||`${c.name}|${c.set}|${c.number}`,name:c.name,set:String(c.set??""),number:String(c.number??""),rarity:String(c.rarity??""),type:c.type,dex:+c.dex||0,img:c.img&&/^https?:/.test(c.img)?c.img:undefined,photo:typeof c.photo==="string"&&c.photo.startsWith("data:image/")?c.photo:undefined,price:+(c.price??c.value)||0,url:c.url,cond:c.cond in COND?c.cond:"Raw",qty:Math.max(1,parseInt(c.qty)||1)}));
+  note(`Backup has <b>${items.length}</b> card${items.length===1?"":"s"}. <button id="rrep" style="padding:6px 10px">Replace mine</button> <button id="radd" class="ghost">Add to mine</button> <button id="rno" class="ghost">Cancel</button>`);
+  const go=async rep=>{
+   note("Restoring…");
+   for(const it of items)if(it.photo)it.photo=await small(it.photo,360)||undefined;
+   col=rep?items:col.concat(items);save();render();note(`Restored ${items.length} card${items.length===1?"":"s"}.`);
+  };
+  $("rrep").onclick=()=>go(true);$("radd").onclick=()=>go(false);$("rno").onclick=()=>note("");
+ }catch(err){note("That doesn't look like a backup file from this app.")}
+});
+
+/* ---------- background ---------- */
+$("bgb").onclick=()=>$("bgfile").click();
+$("bgx").onclick=()=>{bg=null;try{localStorage.removeItem(KB)}catch(e){}render()};
+$("bgfile").addEventListener("change",async e=>{
+ const f=e.target.files[0];e.target.value="";if(!f)return;
+ try{const cv=await shrink(f,1400);bg=cv.toDataURL("image/jpeg",.8);localStorage.setItem(KB,bg);render()}
+ catch(err){bg=null;note("Couldn't save that background (too large for browser storage).");render()}
+});
+render();
+</script></body></html>
